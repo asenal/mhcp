@@ -1,0 +1,114 @@
+#+TITLE:     MHCP II
+#+AUTHOR:    yuqiulin
+#+EMAIL:     yuqiulin@genomics.cn
+#+DATE:      2013-02-19 Tue
+#+DESCRIPTION: 二类结果
+
+* mhcpep 数据库预处理
+该数据库创建时间比较早，采用自定义格式，与现行主流数据库均不兼容。格式化如下：
+|----------+--------+---------+---------+----------+---------+-------------|
+| id       | hla    | type    | species | activity | binding | sequence    |
+|----------+--------+---------+---------+----------+---------+-------------|
+| HUM10001 | HLA-A2 | CLASS-1 | HUMAN   |        4 |       2 | ILKEPVHGV*  |
+| HUM10002 | HLA-A2 | CLASS-1 | HUMAN   |        3 |       0 | EILKEPVHGV* |
+| HUM10003 | HLA-A2 | CLASS-1 | HUMAN   |        2 |       0 | LKEPVHGV*   |
+| ...      | ...    | ...     | ...     |      ... |     ... | ...         |
+|----------+--------+---------+---------+----------+---------+-------------|
+数据库副本在 /ifs1/ST/ANNO/USER/yuqiulin/mhcpep.db,使用 sqlite3 mhcpep.db 打开。
+
+为方便后续程序处理，对结合能力与活性划分等级如下：
+|-------------------+-------+-------------------+-------|
+| activity          | value | binding           | value |
+|-------------------+-------+-------------------+-------|
+| none              |    -1 | none              |    -1 |
+| unkown            |     0 | unkown            |     0 |
+| yes but uncertain |     1 | yes but uncertain |     1 |
+| yes,little        |     2 | yes,little        |     2 |
+| yes,moderate      |     3 | yes,moderate      |     3 |
+| yes,high          |     4 | yes,high          |     4 |
+|-------------------+-------+-------------------+-------|
+
+* 数据与方法
+** 阳性样本
+前期只选取HLA-DR1 ,HLA-DR2,HLA-DR6 测试。从mhcpep数据库中，选择 binding > 2 && activity > 2 && hla == 'HLA-DR{1,2,6}' 的纪录，提取sequence域，选取长度>9的所有sequence 作为 raw data。对 raw data 长度大于9的每条序列以9bp窗口宽度，1bp步长滑动打分［打分函数没有硬编码到主函数中而是作为模块引入，可以是基于pssm的，本次测试是随机抽取］，保留其中得分最大的一条。共有200条9-mer 作为阳性样本。
+
+** 阴性样本
+从人类18号染色体95Mb~100Mb 之间的蛋白序列随即抽取10000bp序列打碎成无overlap的9-mer，选取其中600条并去掉随机冗余。
+
+** 模型训练
+每次将阳性样本与阴性样本按照1:3比例组成训练集，分别用线性核，sigmoid核训练出两组参数 linear.model,sigmoid.model ，并将训练过程中的支撑向量输出以备后期严查。
+
+* 预测结果
+测试方法采用交叉验证法，具体是将某一Allele type的多肽序列分为随机地分为3份［因为数据量已经很小］，挑选其中一份做为测试集，其他两份作为训练集，这样依次循环三次，保证每一份都进行一次测试。最后通过正样本准确度SN和负样本准确度SP来评估PSSM方法。
+|-------------+-------------+----+----|
+| allele type | kernel type | SN | SP |
+|-------------+-------------+----+----|
+| HLA-DR1     | linear      | 57 | 61 |
+|             | sigmoid     | 69 | 73 |
+|-------------+-------------+----+----|
+| HLA-DR2     | lineaer     | 53 | 59 |
+|             | sigmoid     | 71 | 77 |
+|-------------+-------------+----+----|
+| HLA-DR6     | linear      | 55 | 49 |
+|             | sigmoid     | 64 | 67 |
+|-------------+-------------+----+----|
+
+
+
+* TODO
++ scale,should scale before training
++ composition entropy !!!!!!!!!!!!
+* log
+** libsvm
++ sample 如果是稀疏的，在python中用链表存储，最后一位的index是－1，value用？占位。
+#+begin_example
+x->[]->(2,0.1) -> (4,0.3) -> (-1,?) -> (1,0.5) ->..(-1,?) ->...
+#+end_example
++ struct svm_model
+#+begin_src C
+int l; /*number of support svs*/
+double *rho; /*constants in decision functions (rho[k*(k-1)/2])*/
+double *probA; /*pairwise probability information*/
+double *probB; /*for classification only*/
+int *nSV; /*nSV[0] + nSV[1] ..+ nSV[k]= l*/
+#+end_src
++ 多类情况的分类libsvm会构建 1-to-all 共 k*(k-1)/2 种二类情况,*rho,*probA/B 都是字典序排下去。
++ double svm_predict_
++ -s:svm 类型
+  - 0:c-svc
+  - 1:nu-svc
+  - 2:one-class svm
+  - 3:epsilon-svr 回归
+  - 4:nu-svr
++ -t:kernel type
+  - 0:linear :u'*v
+  - 1:poly: (gamma*u'*v + coef0)^degree
+  - 2:radial basis: exp(-gamma*|u-v|^2)
+  - 3:sigmoid: tanh(gamma*u'*v _coef0)
+  - 4:precomputed kernel
++ -d :degree ,default 3
++ -g :gamma default 1/num_features
++ -r :coef0 default 0
++ -c :cost,set the parameter C of C-SVC,epsilon-svr,nu-svr,default 1
++ -n :for nu-svc,one-class svm nu-svr ,default 0.5
++ -h :shirinking,default 1
++ -v : n, n-fold corss validation
++ -wi: weight,set for each class for unbalanced data
++ nSV and nBSV are number of support vectors and bounded support
+
+** FAQ
+*** Q: Why training a probability model (i.e., -b 1) takes a longer time?
+To construct this probability model, we internally conduct a cross validation, which is more time consuming than a regular training. Hence, in general you do parameter selection first without -b 1. You only use -b 1 when good parameters have been selected. In other words, you avoid using -b 1 and -v together. 
+*** Q: How do I get the distance between a point and the hyperplane?
+The distance is |decision_value| / |w|. We have |w|^2 = w^Tw = alpha^T Q alpha = 2*(dual_obj + sum alpha_i). Thus in svm.cpp please find the place where we calculate the dual objective value (i.e., the subroutine Solve()) and add a statement to print w^Tw. 
+*** Q: After doing cross validation, why there is no model file outputted ?
+Cross validation is used for selecting good parameters. After finding them, you want to re-train the whole data without the -v option.
+*** Q: Why using svm-predict -b 0 and -b 1 gives different accuracy values?
+Let's just consider two-class classification here. After probability information is obtained in training, we do not have
+prob > = 0.5 if and only if decision value >= 0.
+So predictions may be different with -b 0 and 1.
+*** Q: What is the difference between "." and "*" outputed during training?
+"." means every 1,000 iterations (or every #data iterations is your #data is less than 1,000). "*" means that after iterations of using a smaller shrunk problem, we reset to use the whole set. See the implementation document for details. 
+
+
+

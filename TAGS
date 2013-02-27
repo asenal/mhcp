@@ -1,0 +1,49 @@
+
+deco.py,45
+def score_hla(10,143
+def score_pssm(13,180
+
+draw.py,206
+def difflist(9,126
+def shrink(15,249
+def find_peak(23,551
+    def local_minimiun(27,697
+def check_exist(35,897
+def column(43,1166
+def get_depths(48,1268
+def make_frame(55,1425
+def draw_sub(61,1571
+
+hla.py,294
+def read_fasta(43,3074
+def read_mhcpep(53,3258
+def check_table(105,5411
+def create_table(111,5611
+def storeDB_mhcpep(114,5658
+def split_kmer(124,6098
+def aa_translate(133,6285
+def divide_listlike(138,6426
+def get_randomchunk(146,6865
+def score_pssm(156,7242
+def score_slide(159,7270
+
+mhcpep.py,55
+def read_mhcpep(23,396
+                class=45,1276
+
+mhcp.py,294
+def read_fasta(49,3152
+def read_mhcpep(59,3336
+def check_table(111,5489
+def create_table(117,5689
+def storeDB_mhcpep(120,5736
+def split_kmer(130,6176
+def aa_translate(139,6363
+def divide_listlike(144,6504
+def get_randomchunk(152,6943
+def score_pssm(162,7320
+def score_slide(165,7348
+
+main.py,0
+
+constant.py,0

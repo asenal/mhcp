@@ -1,0 +1,50 @@
+
+draw.py,206
+def difflist(9,126
+def shrink(15,249
+def find_peak(23,551
+    def local_minimiun(27,697
+def check_exist(35,897
+def column(43,1166
+def get_depths(48,1268
+def make_frame(55,1425
+def draw_sub(61,1571
+
+hla.py,363
+def read_fasta(48,3197
+def read_mhcpep(59,3418
+def check_table(112,5603
+def storeDB_mhcpep(118,5803
+def split_kmer(130,6308
+def aa_translate(142,6578
+def divide_listlike(148,6760
+def get_randomchunk(158,7249
+def get_random_kmers(169,7665
+def trainset_convert(184,8262
+def score_pssm(220,10892
+def score_slide(223,10920
+def kmer_composition(232,11156
+
+mcmc.py,100
+class Model:Model9,166
+    def __init__(10,179
+    def __repr__(13,245
+def get_proposal(30,616
+
+metropolis-hastings.py,18
+def sdnorm(7,130
+
+mhcp.py,294
+def read_fasta(49,3152
+def read_mhcpep(59,3336
+def check_table(111,5489
+def create_table(117,5689
+def storeDB_mhcpep(120,5736
+def split_kmer(130,6176
+def aa_translate(139,6363
+def divide_listlike(144,6504
+def get_randomchunk(152,6943
+def score_pssm(162,7320
+def score_slide(165,7348
+
+gibbs.py,0
