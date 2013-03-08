@@ -247,6 +247,29 @@ def slide(sequence,k):
 def kmer_composition(L):
     """L is a container of sequence,call split-kmer to split each sequence
     in L into 1-mer,2-mer,3-mer..., analyse the comosition of each k-mer group."""
+    pass
+
+def Leven(s,t):
+    len_s = len(s)
+    len_t = len(t)
+    if len_s == 0: return len_t
+    if len_t == 0: return len_s
+    cost=0 if s[len_s-1] == t[len_t-1] else 2
+    print cost
+    return min(Leven(s[0:len_s-1],t) + 1,
+               Leven(s,t[0:len_t-1]) + 1,
+               Leven(s[0:len_s-1], t[0:len_t-1]) + cost)
+
+def Leven_t(s,t):
+    len_s = len(s)
+    len_t = len(t)
+    if len_s == 0: return len_t
+    if len_t == 0: return len_s
+    cost=0 if s[len_s-1] == t[len_t-1] else 2
+#    print 'S is :%s,T is %s,cost is %i' % (s,t,cost)
+    return min(Leven_t(s[0:len_s-1],t)+1,
+               Leven_t(s,t[0:len_t-1])+1,
+               Leven_t(s[0:len_s-1],t[0:len_t-1])+cost)
 
 #--------- svm subs---
 # check this !!!!!!!!! asenal

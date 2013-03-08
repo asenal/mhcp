@@ -100,7 +100,7 @@ int *nSV; /*nSV[0] + nSV[1] ..+ nSV[k]= l*/
 *** Q: Why training a probability model (i.e., -b 1) takes a longer time?
 To construct this probability model, we internally conduct a cross validation, which is more time consuming than a regular training. Hence, in general you do parameter selection first without -b 1. You only use -b 1 when good parameters have been selected. In other words, you avoid using -b 1 and -v together. 
 *** Q: How do I get the distance between a point and the hyperplane?
-The distance is |decision_value| / |w|. We have |w|^2 = w^Tw = alpha^T Q alpha = 2*(dual_obj + sum alpha_i). Thus in svm.cpp please find the place where we calculate the dual objective value (i.e., the subroutine Solve()) and add a statement to print w^Tw. 
+    The distance is |decision_value| / |w|. We have |w|^2 = w^Tw = alpha^T Q alpha = 2*(dual_obj + sum alpha_i). Thus in svm.cpp please find the place where we calculate the dual objective value (i.e., the subroutine Solve()) and add a statement to print w^Tw. 
 *** Q: After doing cross validation, why there is no model file outputted ?
 Cross validation is used for selecting good parameters. After finding them, you want to re-train the whole data without the -v option.
 *** Q: Why using svm-predict -b 0 and -b 1 gives different accuracy values?
